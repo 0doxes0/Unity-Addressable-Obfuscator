@@ -15,7 +15,7 @@ Limitations include:
 - Uses XOR encryption which is fast at runtime but easily reversible
 - Does not protect against runtime memory inspection
 - Does not protect non-Addressable AssetBundles
-- Only tested on the current newest version of Addressable
+- Only tested on the current version of Addressable as of 2/18/2026
 
 ## Setup
 1. Add the files to your project:
