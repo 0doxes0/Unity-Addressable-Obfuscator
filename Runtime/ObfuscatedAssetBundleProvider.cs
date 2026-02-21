@@ -83,7 +83,7 @@ namespace Obfuscation.Addressables
                 byte xorKey = GenerateKeyFromBundleName(bundleName);
 
                 // Restore signature: ObfusctB -> UnityFS
-                byte[] correctSig = System.Text.Encoding.ASCII.GetBytes(UNITY_SIGNATURE);
+                byte[] correctSig = System.Text.Encoding.ASCII.GetBytes("UnityFS\0");
                 for (int i = 0; i < 8; i++)
                 {
                     obfuscatedData[i] = correctSig[i];
