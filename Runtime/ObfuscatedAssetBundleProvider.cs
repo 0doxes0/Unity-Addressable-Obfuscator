@@ -11,7 +11,7 @@ namespace Obfuscation.Addressables
     public class ObfuscatedAssetBundleProvider : AssetBundleProvider
     {
         private const string OBFUSCATED_SIGNATURE = "ObfusctB";
-        private const string UNITY_SIGNATURE = "UnityFS";
+        private const string UNITY_SIGNATURE = "UnityFS\0";
         private const int HEADER_XOR_LENGTH = 256;
 
 
@@ -61,6 +61,7 @@ namespace Obfuscation.Addressables
 
         private void StartDeobfuscatedLoad(ProvideHandle handle, string path)
         {
+
             byte[] obfuscatedData = null;
 
             try
@@ -81,9 +82,11 @@ namespace Obfuscation.Addressables
                 // Generate dynamic key from bundle name
                 string bundleName = Path.GetFileNameWithoutExtension(path);
                 byte xorKey = GenerateKeyFromBundleName(bundleName);
+                Debug.Log($"[Runtime] Bundle: {bundleName}, XOR Key: {xorKey}");
+                Debug.Log($"[Runtime] Before XOR bytes[8-15]: {obfuscatedData[8]:X2} {obfuscatedData[9]:X2} {obfuscatedData[10]:X2} {obfuscatedData[11]:X2} {obfuscatedData[12]:X2} {obfuscatedData[13]:X2} {obfuscatedData[14]:X2} {obfuscatedData[15]:X2}");
 
                 // Restore signature: ObfusctB -> UnityFS
-                byte[] correctSig = System.Text.Encoding.ASCII.GetBytes("UnityFS\0");
+                byte[] correctSig = System.Text.Encoding.ASCII.GetBytes(UNITY_SIGNATURE);
                 for (int i = 0; i < 8; i++)
                 {
                     obfuscatedData[i] = correctSig[i];
@@ -95,6 +98,8 @@ namespace Obfuscation.Addressables
                 {
                     obfuscatedData[i] ^= xorKey;
                 }
+
+                Debug.Log($"[Runtime] After XOR bytes[8-15]: {obfuscatedData[8]:X2} {obfuscatedData[9]:X2} {obfuscatedData[10]:X2} {obfuscatedData[11]:X2} {obfuscatedData[12]:X2} {obfuscatedData[13]:X2} {obfuscatedData[14]:X2} {obfuscatedData[15]:X2}");
             }
 
             catch (Exception e)

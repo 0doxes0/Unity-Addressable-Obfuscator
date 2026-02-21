@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using System.IO;
+using UnityEngine;
 
 public class AddressablesBundleObfuscator : IPostprocessBuildWithReport
 {
@@ -57,18 +58,27 @@ public class AddressablesBundleObfuscator : IPostprocessBuildWithReport
 
         if (data.Length < 8) return;
 
+        // Check if already obfuscated by verifying the magic number "ObfusctB"
+        string currentSig = System.Text.Encoding.ASCII.GetString(data, 0, 8);
+        if (currentSig == "ObfusctB")
+        {
+            Debug.Log($"[Obfuscate] Skipping already obfuscated bundle: {Path.GetFileName(path)}");
+            return;
+        }
+
         // Generate dynamic key from bundle name
         string bundleName = Path.GetFileNameWithoutExtension(path);
         byte xorKey = GenerateKeyFromBundleName(bundleName);
+        Debug.Log($"[Obfuscate] Processing Bundle: {bundleName}, XOR Key: {xorKey}");
 
-        // Change signature
+        // Change signature to our custom magic number
         byte[] obfuscatedSig = System.Text.Encoding.ASCII.GetBytes("ObfusctB");
         for (int i = 0; i < 8; i++)
         {
             data[i] = obfuscatedSig[i];
         }
 
-        // XOR header with dynamic key
+        // XOR header with dynamic key (starting from byte 8 to preserve our magic number)
         int headerEnd = System.Math.Min(256, data.Length);
         for (int i = 8; i < headerEnd; i++)
         {
@@ -77,6 +87,7 @@ public class AddressablesBundleObfuscator : IPostprocessBuildWithReport
 
         File.WriteAllBytes(path, data);
     }
+
 
     private static byte GenerateKeyFromBundleName(string bundleName)
     {
